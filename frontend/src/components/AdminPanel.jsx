@@ -15,12 +15,10 @@ import {
   ShieldCheck,
   ChevronLeft,
   ChevronRight,
-  Database
   Database,
   Cpu
 } from 'lucide-react';
 
-export const AdminPanel = ({ onRefresh }) => {
 export const AdminPanel = ({ userAccounts = [], onRefresh }) => {
   const [activeAdminTab, setActiveAdminTab] = useState('users');
   const [users, setUsers] = useState([]);
