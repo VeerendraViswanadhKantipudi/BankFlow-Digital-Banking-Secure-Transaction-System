@@ -26,7 +26,7 @@ def create_app(config_class=Config):
     limiter.init_app(app)
 
     # 3. Initialize CORS with configured origins (not wildcard)
-    CORS(app, resources={r"/api/*": {"origins": app.config["CORS_ORIGINS"]}}, supports_credentials=True)
+    CORS(app, resources={r"/api/.*": {"origins": app.config.get("CORS_ORIGINS", "*")}}, supports_credentials=True)
 
     # 4. Request Tracing Middleware (X-Request-ID)
     @app.before_request
