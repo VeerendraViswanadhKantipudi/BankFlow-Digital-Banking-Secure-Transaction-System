@@ -122,3 +122,7 @@ def create_app(config_class=Config):
             pass
 
     return app
+
+
+# Default WSGI app instance for servers using 'gunicorn app:app'
+app = create_app()
