@@ -45,7 +45,15 @@ def create_app(config_class=Config):
     app.register_blueprint(account_bp)
     app.register_blueprint(transfer_bp)
 
-    # 6. Global Health & Info route
+    # 6. Root & Health routes
+    @app.route("/", methods=["GET"])
+    def root_index():
+        return jsonify({
+            "service": "BankFlow API",
+            "status": "ONLINE",
+            "health": "/api/v1/health"
+        }), 200
+
     @app.route("/api/v1/health", methods=["GET"])
     def health_check():
         return jsonify({
@@ -87,14 +95,19 @@ def create_app(config_class=Config):
             "details": str(e.description)
         }), 429
 
-    # 9. Global 404 and 500 handlers
+    # 9. Global 404, 500 and Exception handlers
     @app.errorhandler(404)
     def resource_not_found(e):
         return jsonify({"error": "Requested resource was not found."}), 404
 
-    @app.errorhandler(500)
-    def internal_server_error(e):
-        return jsonify({"error": "An internal server error occurred."}), 500
+    @app.errorhandler(Exception)
+    def handle_unexpected_error(e):
+        import traceback
+        traceback.print_exc()
+        return jsonify({
+            "error": "An internal server error occurred.",
+            "message": str(e)
+        }), 500
 
     # 10. Register CLI command: flask reconcile
     @app.cli.command("reconcile")
