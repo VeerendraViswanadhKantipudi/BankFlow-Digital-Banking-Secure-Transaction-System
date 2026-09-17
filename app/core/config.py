@@ -4,8 +4,8 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-def _build_db_config():
-    raw_db_url = os.getenv('DATABASE_URL', 'mysql+pymysql://root@localhost:3307/bankflow')
+def _build_db_config(env_var='DATABASE_URL', default='mysql+pymysql://root@localhost:3307/bankflow'):
+    raw_db_url = os.getenv(env_var, default)
     if raw_db_url.startswith('mysql://'):
         raw_db_url = raw_db_url.replace('mysql://', 'mysql+pymysql://', 1)
     
@@ -24,7 +24,8 @@ def _build_db_config():
         
     return clean_db_url, engine_options
 
-_db_uri, _db_engine_options = _build_db_config()
+_db_uri, _db_engine_options = _build_db_config('DATABASE_URL', 'mysql+pymysql://root@localhost:3307/bankflow')
+_test_db_uri, _test_db_engine_options = _build_db_config('TEST_DATABASE_URL', 'mysql+pymysql://root@localhost:3307/bankflow_test')
 
 class Config:
     SECRET_KEY = os.getenv('SECRET_KEY', 'bankflow-production-secret-key-super-secure')
@@ -41,8 +42,6 @@ class Config:
 class TestConfig(Config):
     TESTING = True
     RATELIMIT_ENABLED = False
-    raw_test_db_url = os.getenv('TEST_DATABASE_URL', 'mysql+pymysql://root@localhost:3307/bankflow_test')
-    if raw_test_db_url.startswith('mysql://'):
-        raw_test_db_url = raw_test_db_url.replace('mysql://', 'mysql+pymysql://', 1)
-    SQLALCHEMY_DATABASE_URI = raw_test_db_url
+    SQLALCHEMY_DATABASE_URI = _test_db_uri
+    SQLALCHEMY_ENGINE_OPTIONS = _test_db_engine_options
     JWT_ACCESS_TOKEN_EXPIRES = timedelta(hours=1)
