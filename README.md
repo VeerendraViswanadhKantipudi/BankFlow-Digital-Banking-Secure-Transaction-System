@@ -1,4 +1,4 @@
-﻿# BankFlow — Full-Stack Transactional Banking System
+# BankFlow — Full-Stack Transactional Banking System
 
 A production-grade, highly concurrent transactional banking system and double-entry ledger built with **Flask**, **MySQL (InnoDB)**, **Flask-SQLAlchemy**, **JWT**, and **React**.
 
@@ -144,10 +144,12 @@ npm run dev
 ```
 Frontend client will start at `http://localhost:5173`.
 
-### Demo Credentials (Created by `seed.py`):
-- **Admin**: `admin@bankflow.com` / `AdminPassword123!` (Balance: $10,000.00)
-- **Customer 1**: `alice@example.com` / `Password123!` (Balance: $2,500.00)
-- **Customer 2**: `bob@example.com` / `Password123!` (Balance: $1,500.00)
+### Local Development Accounts (Generated via `seed.py`):
+
+> [!NOTE]
+> Demo and administrative credentials are for **local development and testing only**, created on-demand when executing `python seed.py` against a local database instance. They are not present in any deployed cloud environment.
+> 
+> When `seed.py` runs locally, secure cryptographic passwords are generated at runtime (via `secrets.token_urlsafe`) and displayed directly to the local terminal. No plaintext credentials or static passwords exist in the codebase.
 
 ---
 

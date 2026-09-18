@@ -65,29 +65,20 @@ export const LoginPage = ({ onSwitchToRegister }) => {
             Enter your credentials or click a demo profile below.
           </p>
 
-          {/* Quick Demo Login Pills */}
+          {/* Quick Demo Login Pill for Customer */}
           <div style={{ marginBottom: '1.25rem' }}>
             <div style={{ fontSize: '0.75rem', fontWeight: '700', color: 'var(--text-muted)', marginBottom: '0.5rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-              ⚡ 1-Click Demo Profiles
+              ⚡ 1-Click Demo Account (Customer)
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem' }}>
+            <div>
               <button
                 type="button"
                 className="btn btn-secondary"
                 onClick={() => handleQuickLogin('alice@example.com', 'Password123!')}
-                style={{ fontSize: '0.75rem', padding: '0.45rem 0.5rem', justifyContent: 'flex-start' }}
+                style={{ fontSize: '0.75rem', padding: '0.45rem 0.5rem', width: '100%', justifyContent: 'center' }}
               >
                 <User size={14} color="#3b82f6" />
-                <span>Alice (Customer)</span>
-              </button>
-              <button
-                type="button"
-                className="btn btn-secondary"
-                onClick={() => handleQuickLogin('admin@bankflow.com', 'AdminPassword123!')}
-                style={{ fontSize: '0.75rem', padding: '0.45rem 0.5rem', justifyContent: 'flex-start' }}
-              >
-                <Shield size={14} color="#a855f7" />
-                <span>Admin Portal</span>
+                <span>Sign in as Alice (Demo Customer)</span>
               </button>
             </div>
           </div>

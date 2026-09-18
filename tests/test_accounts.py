@@ -1,4 +1,4 @@
-﻿import pytest
+import pytest
 from decimal import Decimal
 from app.services.auth_service import register_user
 
@@ -67,7 +67,7 @@ def test_account_enumeration_defense(client):
 
 def test_admin_freeze_and_unfreeze(client):
     # Create Admin via service (internal provisioning)
-    admin_auth = register_user('Admin User', 'admin@bankflow.com', 'AdminPassword123!', role='ADMIN')
+    admin_auth = register_user('Admin User', 'admin_test@bankflow.local', 'TestAdmin#SecurePass99!', role='ADMIN')
     admin_token = admin_auth['access_token']
     admin_headers = {'Authorization': f'Bearer {admin_token}'}
 
