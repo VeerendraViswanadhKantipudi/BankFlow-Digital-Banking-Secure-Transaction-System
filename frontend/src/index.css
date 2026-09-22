@@ -1,4 +1,13 @@
 :root {
+  /* ── White-label branding tokens (set dynamically by BrandingContext) ──────
+     These default to the BankFlow design system so the app works without a
+     BrandingContext call. Once loaded from /api/v1/config/branding, any bank's
+     colors, name, and logo replace these values across all components.      */
+  --brand-primary:   #2563eb;
+  --brand-secondary: #1e40af;
+  --brand-accent:    #3b82f6;
+
+  /* ── Structural layout tokens ──────────────────────────────────────────── */
   --bg-primary: #090d16;
   --bg-secondary: #0f172a;
   --bg-card: rgba(17, 24, 39, 0.75);
@@ -7,10 +16,12 @@
   --border-color: rgba(255, 255, 255, 0.08);
   --border-hover: rgba(255, 255, 255, 0.16);
   --border-focus: #3b82f6;
+  --border-focus: var(--brand-primary);
   --text-primary: #f8fafc;
   --text-secondary: #94a3b8;
   --text-muted: #64748b;
   --accent-blue: #3b82f6;
+  --accent-blue: var(--brand-primary);
   --accent-indigo: #6366f1;
   --accent-emerald: #10b981;
   --accent-amber: #f59e0b;

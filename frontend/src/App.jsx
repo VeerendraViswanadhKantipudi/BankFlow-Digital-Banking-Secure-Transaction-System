@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
 import { useAuth } from './context/AuthContext';
+import { BrandingProvider } from './context/BrandingContext';
 import { LoginPage } from './pages/LoginPage';
 import { RegisterPage } from './pages/RegisterPage';
 import { DashboardPage } from './pages/DashboardPage';
 import { ShieldCheck } from 'lucide-react';
 
 export const App = () => {
+const AppInner = () => {
   const { isAuthenticated, loading } = useAuth();
   const [authView, setAuthView] = useState('login');
 
@@ -22,6 +24,7 @@ export const App = () => {
       }}>
         <div style={{
           background: 'linear-gradient(135deg, #2563eb, #3b82f6)',
+          background: 'linear-gradient(135deg, var(--brand-primary), var(--brand-accent))',
           padding: '1rem',
           borderRadius: '20px',
           boxShadow: '0 0 30px rgba(59, 130, 246, 0.4)',
@@ -46,5 +49,11 @@ export const App = () => {
 
   return <DashboardPage />;
 };
+
+export const App = () => (
+  <BrandingProvider>
+    <AppInner />
+  </BrandingProvider>
+);
 
 export default App;

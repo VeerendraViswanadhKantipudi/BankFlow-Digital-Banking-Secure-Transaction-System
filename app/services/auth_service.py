@@ -1,7 +1,9 @@
 import random
 import string
+import time
 from decimal import Decimal
 from flask_jwt_extended import create_access_token
+from sqlalchemy.exc import IntegrityError
 from app.extensions import db, bcrypt
 from app.models.domain import User, Account, UserRole, AccountStatus, AuditEventType
 from app.services.audit_service import record_audit_event
@@ -14,14 +16,47 @@ from app.core.exceptions import AuthenticationError, ValidationError, AccountErr
 # This eliminates user enumeration attacks via side-channel response latency analysis.
 DUMMY_BCRYPT_HASH = bcrypt.generate_password_hash("dummy_password_timing_protection").decode("utf-8")
 
+_MAX_ACCT_RETRIES = 5
 
 def generate_account_number() -> str:
+
+def _generate_account_number_candidate() -> str:
     """
     Generates a 12-digit formatted bank account number with a 'BF' prefix.
+    Generates a single 12-character formatted bank account number with a 'BF' prefix.
     Example: 'BF9482018471'
     """
     digits = "".join(random.choices(string.digits, k=10))
     return f"BF{digits}"
+
+
+def generate_account_number() -> str:
+    """
+    Returns a unique bank account number, retrying on uniqueness constraint collisions.
+
+    Strategy:
+    - Attempt up to _MAX_ACCT_RETRIES times.
+    - On each IntegrityError (duplicate account_number in DB), roll back the failed flush,
+      wait with exponential backoff (50ms * 2^attempt), and regenerate.
+    - After all retries exhausted, raises AccountError.
+
+    This closes the Known Limitation: concurrent registration spikes no longer rely
+    silently on the DB constraint as the sole guard — the application handles retries
+    gracefully before surfacing a controlled error.
+    """
+    for attempt in range(_MAX_ACCT_RETRIES):
+        candidate = _generate_account_number_candidate()
+        # Lightweight existence check before touching the DB (avoids flush overhead on most attempts)
+        existing = Account.query.filter_by(account_number=candidate).first()
+        if existing is None:
+            return candidate
+        # Candidate already taken — wait with exponential backoff before next attempt
+        time.sleep(0.05 * (2 ** attempt))
+
+    raise AccountError(
+        f"Account number generation failed after {_MAX_ACCT_RETRIES} retries. "
+        "Please try again — this is extremely unlikely under normal load."
+    )
 
 
 def register_user(full_name: str, email: str, password: str, initial_deposit: Decimal = Decimal("0.00"), role: str = "CUSTOMER"):

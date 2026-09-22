@@ -6,6 +6,8 @@ from app import create_app
 from app.core.config import TestConfig
 from app.extensions import db as _db, bcrypt
 from app.models.domain import User, Account, Transaction, UserRole, AccountStatus, LedgerEntry, AuditLog
+from app.models.idempotency import IdempotencyRecord
+from app.models.branding import BankConfig
 from app.db import validate_mysql_url
 
 
@@ -46,12 +48,15 @@ def clean_database(app):
     yield
     with app.app_context():
         _db.session.rollback()
+        _db.session.query(BankConfig).delete()
+        _db.session.query(IdempotencyRecord).delete()
         _db.session.query(LedgerEntry).delete()
         _db.session.query(AuditLog).delete()
         _db.session.query(Transaction).delete()
         _db.session.query(Account).delete()
         _db.session.query(User).delete()
         _db.session.commit()
+
 
 
 @pytest.fixture

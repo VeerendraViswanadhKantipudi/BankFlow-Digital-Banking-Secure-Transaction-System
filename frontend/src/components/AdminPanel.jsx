@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { accountApi } from '../api/client';
 import { ConcurrencyDemo } from './ConcurrencyDemo';
+import { BrandingPanel } from './BrandingPanel';
 import {
   ShieldAlert,
   Lock,
@@ -16,6 +17,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Database,
+  Palette,
   Cpu
 } from 'lucide-react';
 
@@ -175,6 +177,13 @@ export const AdminPanel = ({ userAccounts = [], onRefresh }) => {
             >
               <Cpu size={14} /> Concurrency Lab
             </button>
+            <button
+              className={`btn ${activeAdminTab === 'branding' ? 'btn-primary' : 'btn-secondary'}`}
+              onClick={() => setActiveAdminTab('branding')}
+              style={{ padding: '0.4rem 0.75rem', fontSize: '0.75rem' }}
+            >
+              <Palette size={14} /> Branding
+            </button>
           </div>
         </div>
 
@@ -191,6 +200,8 @@ export const AdminPanel = ({ userAccounts = [], onRefresh }) => {
             <span>{success}</span>
           </div>
         )}
+
+        {activeAdminTab === 'branding' && <BrandingPanel />}
 
         {/* Tab 1: Users & Accounts */}
         {activeAdminTab === 'users' && (

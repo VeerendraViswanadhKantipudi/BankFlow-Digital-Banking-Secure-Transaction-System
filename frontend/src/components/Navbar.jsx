@@ -1,9 +1,11 @@
 import React from 'react';
 import { useAuth } from '../context/AuthContext';
+import { useBranding } from '../context/BrandingContext';
 import { ShieldCheck, LogOut, RefreshCw, Layers, ShieldAlert, Cpu } from 'lucide-react';
 
 export const Navbar = ({ activeTab, setActiveTab, onRefresh, refreshing }) => {
   const { user, isAdmin, logout } = useAuth();
+  const { branding } = useBranding();
 
   return (
     <header style={{
@@ -23,6 +25,7 @@ export const Navbar = ({ activeTab, setActiveTab, onRefresh, refreshing }) => {
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', cursor: 'pointer' }} onClick={() => setActiveTab('overview')}>
           <div style={{
             background: 'linear-gradient(135deg, #2563eb, #3b82f6)',
+            background: `linear-gradient(135deg, var(--brand-primary), var(--brand-accent))`,
             padding: '0.5rem',
             borderRadius: '10px',
             display: 'flex',
@@ -31,13 +34,20 @@ export const Navbar = ({ activeTab, setActiveTab, onRefresh, refreshing }) => {
             boxShadow: '0 0 15px rgba(59, 130, 246, 0.4)'
           }}>
             <ShieldCheck size={24} color="#ffffff" />
+            {branding.bank_logo_url ? (
+              <img src={branding.bank_logo_url} alt="Bank Logo" style={{ width: 24, height: 24, objectFit: 'contain' }} />
+            ) : (
+              <ShieldCheck size={24} color="#ffffff" />
+            )}
           </div>
           <div>
             <h1 style={{ fontSize: '1.25rem', fontWeight: '800', letterSpacing: '-0.025em', color: '#ffffff' }}>
               Bank<span style={{ color: '#3b82f6' }}>Flow</span>
+              {branding.bank_name || 'BankFlow'}
             </h1>
             <p style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: '600', letterSpacing: '0.05em', textTransform: 'uppercase' }}>
               Transactional Banking
+              {branding.bank_tagline || 'Transactional Banking'}
             </p>
           </div>
         </div>

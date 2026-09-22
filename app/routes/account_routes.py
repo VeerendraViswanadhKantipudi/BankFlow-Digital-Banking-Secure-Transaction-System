@@ -1,16 +1,22 @@
+import json
 from decimal import Decimal
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity, get_jwt
 from marshmallow import ValidationError as MarshmallowValidationError
 from sqlalchemy import desc
+from sqlalchemy.exc import IntegrityError
 from app.extensions import db
 from app.models.domain import (
     Account,User,Transaction,AccountStatus,UserRole,TransactionStatus,LedgerEntry,LedgerEntryType,AuditLog,AuditEventType)
+    Account, User, Transaction, AccountStatus, UserRole, TransactionStatus,
+    LedgerEntry, LedgerEntryType, AuditLog, AuditEventType)
+from app.models.idempotency import IdempotencyRecord
 from app.schemas.account_schema import CreateAccountSchema, UpdateAccountStatusSchema, UpdateUserRoleSchema, DepositSchema
 from app.schemas.transfer_schema import TransactionFilterSchema
 from app.services.auth_service import generate_account_number
 from app.services.audit_service import record_audit_event
 from app.services.reconciliation_service import reconcile_system_balances
+
 
 account_bp = Blueprint("accounts", __name__, url_prefix="/api/v1/accounts")
 create_account_schema = CreateAccountSchema()
@@ -66,11 +72,60 @@ def get_account(account_id: int):
     return jsonify({"account": account.to_dict()}), 200
 
 
+# Helper: idempotency check + record write
+def _check_idempotency(idem_key: str, endpoint: str):
+    """
+    Returns (record, response) if a replay is found, else (None, None).
+    Raises 409 if key exists for a different endpoint.
+    """
+    if not idem_key:
+        return None, None
+    existing = IdempotencyRecord.query.filter_by(idempotency_key=idem_key).first()
+    if existing:
+        if existing.endpoint != endpoint:
+            return "conflict", None
+        body = json.loads(existing.response_body_json)
+        return "replay", (body, existing.status_code)
+    return None, None
+
+
+def _store_idempotency(idem_key: str, endpoint: str, body: dict, status_code: int):
+    """Stores a new IdempotencyRecord. Call after successful commit."""
+    if not idem_key:
+        return
+    record = IdempotencyRecord(
+        idempotency_key=idem_key,
+        endpoint=endpoint,
+        response_body_json=json.dumps(body, default=str),
+        status_code=status_code
+    )
+    try:
+        db.session.add(record)
+        db.session.commit()
+    except IntegrityError:
+        db.session.rollback()  # Race: another request stored same key first — that's fine
+
+
 @account_bp.route("", methods=["POST"])
 @jwt_required()
 def create_account():
     """Creates a secondary account for the authenticated user."""
+    """Creates a secondary account for the authenticated user.
+
+    Supports Idempotency-Key header: send the same request with the same key twice
+    and the second call returns the original response without creating a second account.
+    """
     user_id, _ = get_current_user_and_role()
+    idem_key = request.headers.get("Idempotency-Key") or request.headers.get("X-Idempotency-Key")
+    endpoint = "create_account"
+
+    state, replay = _check_idempotency(idem_key, endpoint)
+    if state == "conflict":
+        return jsonify({"error": "Idempotency key conflict: key used for a different endpoint."}), 409
+    if state == "replay":
+        body, status_code = replay
+        return jsonify(body), status_code
+
     data = request.get_json() or {}
     
     try:
@@ -80,6 +135,10 @@ def create_account():
 
     initial_deposit = Decimal(str(validated_data.get("initial_deposit", "0.00")))
     account_number = generate_account_number()
+    try:
+        account_number = generate_account_number()
+    except Exception as e:
+        return jsonify({"error": str(e)}), 503
 
     account = Account(
         user_id=user_id,
@@ -111,16 +170,37 @@ def create_account():
     db.session.commit()
 
     return jsonify({
+    response_body = {
         "message": "Account created successfully.",
         "account": account.to_dict()
     }), 201
+    }
+    _store_idempotency(idem_key, endpoint, response_body, 201)
+
+    return jsonify(response_body), 201
+
 
 
 @account_bp.route("/<int:account_id>/deposit", methods=["POST"])
 @jwt_required()
 def deposit_funds(account_id: int):
     """Adds funds to an account and writes a CREDIT ledger entry."""
+    """Adds funds to an account and writes a CREDIT ledger entry.
+
+    Supports Idempotency-Key header: replaying the same deposit request with the same key
+    returns the original response without applying a second credit to the account.
+    """
     user_id, role = get_current_user_and_role()
+    idem_key = request.headers.get("Idempotency-Key") or request.headers.get("X-Idempotency-Key")
+    endpoint = f"deposit_funds:{account_id}"
+
+    state, replay = _check_idempotency(idem_key, endpoint)
+    if state == "conflict":
+        return jsonify({"error": "Idempotency key conflict: key used for a different endpoint."}), 409
+    if state == "replay":
+        body, status_code = replay
+        return jsonify(body), status_code
+
     account = Account.query.filter_by(account_id=account_id).first()
 
     if not account or (account.user_id != user_id and role != UserRole.ADMIN.value):
@@ -160,9 +240,15 @@ def deposit_funds(account_id: int):
     db.session.commit()
 
     return jsonify({
+    response_body = {
         "message": f"Successfully deposited {amount} into account {account_id}.",
         "account": account.to_dict()
     }), 200
+    }
+    _store_idempotency(idem_key, endpoint, response_body, 200)
+
+    return jsonify(response_body), 200
+
 
 
 @account_bp.route("/<int:account_id>/status", methods=["PATCH"])
