@@ -18,11 +18,9 @@ DUMMY_BCRYPT_HASH = bcrypt.generate_password_hash("dummy_password_timing_protect
 
 _MAX_ACCT_RETRIES = 5
 
-def generate_account_number() -> str:
 
 def _generate_account_number_candidate() -> str:
     """
-    Generates a 12-digit formatted bank account number with a 'BF' prefix.
     Generates a single 12-character formatted bank account number with a 'BF' prefix.
     Example: 'BF9482018471'
     """

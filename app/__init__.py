@@ -11,10 +11,13 @@ from app.routes.auth_routes import auth_bp
 from app.routes.account_routes import account_bp
 from app.routes.transfer_routes import transfer_bp
 from app.routes.config_routes import config_bp
+from app.routes.profile_routes import profile_bp
+from app.routes.statement_routes import statement_bp
 # Import all models so db.create_all() registers every table
 from app.models import domain  # noqa: F401  — registers User, Account, Transaction, LedgerEntry, AuditLog
 from app.models import idempotency  # noqa: F401  — registers IdempotencyRecord
 from app.models import branding  # noqa: F401  — registers BankConfig
+from app.models import profile  # noqa: F401  — registers UserProfile
 
 
 def create_app(config_class=Config):
@@ -50,6 +53,26 @@ def create_app(config_class=Config):
     app.register_blueprint(account_bp)
     app.register_blueprint(transfer_bp)
     app.register_blueprint(config_bp)
+    app.register_blueprint(profile_bp)
+    app.register_blueprint(statement_bp)
+
+    # 5b. Security Headers — applied to every response
+    @app.after_request
+    def add_security_headers(response):
+        """
+        Adds defensive HTTP security headers to every response.
+        These prevent common browser-level attacks (XSS, clickjacking, MIME sniffing).
+        """
+        response.headers["X-Content-Type-Options"] = "nosniff"
+        response.headers["X-Frame-Options"] = "DENY"
+        response.headers["X-XSS-Protection"] = "1; mode=block"
+        response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+        response.headers["Permissions-Policy"] = "geolocation=(), camera=(), microphone=()"
+        # Prevent caching of authenticated API responses
+        if request.path.startswith("/api/"):
+            response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, private"
+            response.headers["Pragma"] = "no-cache"
+        return response
 
     # 6. Root & Health routes
     @app.route("/", methods=["GET"])

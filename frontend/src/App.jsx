@@ -6,7 +6,6 @@ import { RegisterPage } from './pages/RegisterPage';
 import { DashboardPage } from './pages/DashboardPage';
 import { ShieldCheck } from 'lucide-react';
 
-export const App = () => {
 const AppInner = () => {
   const { isAuthenticated, loading } = useAuth();
   const [authView, setAuthView] = useState('login');
@@ -23,7 +22,6 @@ const AppInner = () => {
         color: 'var(--text-primary)'
       }}>
         <div style={{
-          background: 'linear-gradient(135deg, #2563eb, #3b82f6)',
           background: 'linear-gradient(135deg, var(--brand-primary), var(--brand-accent))',
           padding: '1rem',
           borderRadius: '20px',

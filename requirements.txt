@@ -11,3 +11,4 @@ marshmallow==4.3.1
 python-dotenv==1.2.2
 pytest==9.1.1
 gunicorn==23.0.0
+reportlab==4.2.5

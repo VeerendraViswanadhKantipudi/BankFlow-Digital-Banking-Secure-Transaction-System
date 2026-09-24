@@ -149,9 +149,29 @@ def execute_transfer(
 
         # Step 10: Commit all operations as one atomic unit
         db_session.commit()
+
+        # Step 11: Fire-and-forget notification (post-commit — never blocks the transfer)
+        try:
+            from app.services.notification_service import notify
+            from app.models.domain import User
+            sender_user = db_session.get(User, sender_account.user_id)
+            if sender_user and sender_user.email:
+                notify(
+                    event="TRANSFER_COMPLETED",
+                    recipient_email=sender_user.email,
+                    context={
+                        "transaction_id": tx.transaction_id,
+                        "amount": str(amount),
+                        "from_account": sender_id,
+                        "to_account": receiver_id,
+                    }
+                )
+        except Exception:  # noqa: BLE001 — notification must never propagate
+            pass
+
         return tx
 
     except Exception:
-        # Step 11: Automatic Rollback on Any Exception
+        # Step 12: Automatic Rollback on Any Exception
         db_session.rollback()
         raise

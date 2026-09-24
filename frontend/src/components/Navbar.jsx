@@ -24,7 +24,6 @@ export const Navbar = ({ activeTab, setActiveTab, onRefresh, refreshing }) => {
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', cursor: 'pointer' }} onClick={() => setActiveTab('overview')}>
           <div style={{
-            background: 'linear-gradient(135deg, #2563eb, #3b82f6)',
             background: `linear-gradient(135deg, var(--brand-primary), var(--brand-accent))`,
             padding: '0.5rem',
             borderRadius: '10px',

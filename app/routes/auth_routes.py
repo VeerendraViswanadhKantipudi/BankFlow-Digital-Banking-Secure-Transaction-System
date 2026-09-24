@@ -58,6 +58,18 @@ def login():
             "data": result
         }), 200
     except AuthenticationError as e:
+        # Fire-and-forget login failure notification (never blocks the response)
+        try:
+            from app.services.notification_service import notify
+            candidate_email = validated_data.get("email", "")
+            if candidate_email:
+                notify(
+                    event="LOGIN_FAILED",
+                    recipient_email=candidate_email,
+                    context={"email": candidate_email, "reason": "Invalid credentials"},
+                )
+        except Exception:  # noqa: BLE001
+            pass
         return jsonify({"error": str(e)}), 401
     except Exception as e:
         return jsonify({"error": "Authentication error", "details": str(e)}), 500

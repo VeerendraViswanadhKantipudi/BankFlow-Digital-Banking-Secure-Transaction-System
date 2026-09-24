@@ -7,7 +7,6 @@ from sqlalchemy import desc
 from sqlalchemy.exc import IntegrityError
 from app.extensions import db
 from app.models.domain import (
-    Account,User,Transaction,AccountStatus,UserRole,TransactionStatus,LedgerEntry,LedgerEntryType,AuditLog,AuditEventType)
     Account, User, Transaction, AccountStatus, UserRole, TransactionStatus,
     LedgerEntry, LedgerEntryType, AuditLog, AuditEventType)
 from app.models.idempotency import IdempotencyRecord
@@ -169,11 +168,9 @@ def create_account():
 
     db.session.commit()
 
-    return jsonify({
     response_body = {
         "message": "Account created successfully.",
         "account": account.to_dict()
-    }), 201
     }
     _store_idempotency(idem_key, endpoint, response_body, 201)
 
@@ -239,11 +236,9 @@ def deposit_funds(account_id: int):
 
     db.session.commit()
 
-    return jsonify({
     response_body = {
         "message": f"Successfully deposited {amount} into account {account_id}.",
         "account": account.to_dict()
-    }), 200
     }
     _store_idempotency(idem_key, endpoint, response_body, 200)
 
