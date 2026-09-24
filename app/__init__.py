@@ -156,10 +156,12 @@ def create_app(config_class=Config):
         click.echo(f"Discrepancies:               {report['transfer_discrepancies_count']}")
         click.echo("==================================================")
 
-    # 11. Auto-create database tables
+    # 11. Auto-create database tables & ensure demo accounts
     with app.app_context():
         try:
             db.create_all()
+            from app.services.auth_service import ensure_demo_accounts
+            ensure_demo_accounts()
         except Exception:
             pass
 

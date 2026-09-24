@@ -81,8 +81,8 @@ def seed_database(force: bool = False):
 
         # 2. Demo Customer 1 (Alice)
         alice = User.query.filter_by(email="alice@example.com").first()
+        alice_password = "Password123!"
         if not alice:
-            alice_password = secrets.token_urlsafe(12)
             print("Creating Demo Customer 1 (alice@example.com)...")
             res = register_user(
                 full_name="Alice Johnson",
@@ -102,12 +102,14 @@ def seed_database(force: bool = False):
             db.session.commit()
             print(f"   Alice credentials -> Email: alice@example.com | Password: {alice_password}")
         else:
-            print("Demo Customer 1 (alice@example.com) already exists.")
+            alice.password_hash = bcrypt.generate_password_hash(alice_password).decode("utf-8")
+            db.session.commit()
+            print(f"Demo Customer 1 (alice@example.com) password synced to {alice_password}.")
 
         # 3. Demo Customer 2 (Bob)
         bob = User.query.filter_by(email="bob@example.com").first()
+        bob_password = "Password123!"
         if not bob:
-            bob_password = secrets.token_urlsafe(12)
             print("Creating Demo Customer 2 (bob@example.com)...")
             res = register_user(
                 full_name="Bob Smith",
@@ -127,7 +129,9 @@ def seed_database(force: bool = False):
             db.session.commit()
             print(f"   Bob credentials   -> Email: bob@example.com | Password: {bob_password}")
         else:
-            print("Demo Customer 2 (bob@example.com) already exists.")
+            bob.password_hash = bcrypt.generate_password_hash(bob_password).decode("utf-8")
+            db.session.commit()
+            print(f"Demo Customer 2 (bob@example.com) password synced to {bob_password}.")
 
         recon = reconcile_system_balances(db.session)
         print(f"\n[OK] Seeding complete! Reconciliation Status: {recon['status']} (Total Balance: ${recon['total_account_balances']})")

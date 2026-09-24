@@ -185,3 +185,44 @@ def authenticate_user(email: str, password: str):
         "user": user.to_dict(),
         "access_token": token
     }
+
+
+def ensure_demo_accounts():
+    """
+    Ensures demo customer accounts (Alice and Bob) exist and have password 'Password123!'
+    so that 1-click demo logins on the frontend always succeed.
+    """
+    demo_users = [
+        ("Alice Johnson", "alice@example.com", "Password123!", Decimal("2500.00")),
+        ("Bob Smith", "bob@example.com", "Password123!", Decimal("1500.00")),
+    ]
+    for full_name, email, password, initial_deposit in demo_users:
+        user = User.query.filter_by(email=email).first()
+        if not user:
+            try:
+                register_user(
+                    full_name=full_name,
+                    email=email,
+                    password=password,
+                    initial_deposit=initial_deposit,
+                    role="CUSTOMER"
+                )
+            except Exception:
+                db.session.rollback()
+        else:
+            # Sync password hash to Password123! in case it was randomized previously
+            user.password_hash = bcrypt.generate_password_hash(password).decode("utf-8")
+            if not user.accounts:
+                acct_num = generate_account_number()
+                acct = Account(
+                    user_id=user.user_id,
+                    account_number=acct_num,
+                    balance=initial_deposit,
+                    status=AccountStatus.ACTIVE
+                )
+                db.session.add(acct)
+            else:
+                for acc in user.accounts:
+                    if acc.status != AccountStatus.ACTIVE:
+                        acc.status = AccountStatus.ACTIVE
+            db.session.commit()

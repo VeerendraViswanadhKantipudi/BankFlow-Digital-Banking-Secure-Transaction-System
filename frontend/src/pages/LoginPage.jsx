@@ -65,12 +65,12 @@ export const LoginPage = ({ onSwitchToRegister }) => {
             Enter your credentials or click a demo profile below.
           </p>
 
-          {/* Quick Demo Login Pill for Customer */}
+          {/* Quick Demo Login Pill for Customers */}
           <div style={{ marginBottom: '1.25rem' }}>
             <div style={{ fontSize: '0.75rem', fontWeight: '700', color: 'var(--text-muted)', marginBottom: '0.5rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-              ⚡ 1-Click Demo Account (Customer)
+              ⚡ 1-Click Demo Accounts (Customer)
             </div>
-            <div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem' }}>
               <button
                 type="button"
                 className="btn btn-secondary"
@@ -78,7 +78,16 @@ export const LoginPage = ({ onSwitchToRegister }) => {
                 style={{ fontSize: '0.75rem', padding: '0.45rem 0.5rem', width: '100%', justifyContent: 'center' }}
               >
                 <User size={14} color="#3b82f6" />
-                <span>Sign in as Alice (Demo Customer)</span>
+                <span>Alice ($2,500)</span>
+              </button>
+              <button
+                type="button"
+                className="btn btn-secondary"
+                onClick={() => handleQuickLogin('bob@example.com', 'Password123!')}
+                style={{ fontSize: '0.75rem', padding: '0.45rem 0.5rem', width: '100%', justifyContent: 'center' }}
+              >
+                <User size={14} color="#10b981" />
+                <span>Bob ($1,500)</span>
               </button>
             </div>
           </div>
