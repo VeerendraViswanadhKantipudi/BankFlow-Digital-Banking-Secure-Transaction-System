@@ -350,3 +350,4 @@ def generate_pdf_receipt(
 
     doc.build(story)
     return buf.getvalue()
+

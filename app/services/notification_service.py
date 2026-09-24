@@ -144,3 +144,4 @@ def notify(event: str, recipient_email: str, context: dict, subject: Optional[st
             f"Notification failed for event={event!r} recipient={recipient_email!r}: {exc}",
             exc_info=True
         )
+

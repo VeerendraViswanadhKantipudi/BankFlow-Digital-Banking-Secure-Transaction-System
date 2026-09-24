@@ -153,3 +153,4 @@ def download_receipt_pdf(transaction_id: int):
             "Content-Disposition": f"attachment; filename={filename}",
         }
     )
+
